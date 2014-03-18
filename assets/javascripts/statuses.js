@@ -39,11 +39,10 @@ $(function(){
             $issueBranches = $('<div id="issue_branches"></div>'),
             unique = $.unique($info.data('branches')),
             projectSid = $info.data('projectSid'),
-            $issueBranches,
             elderBranch,
             instanceName,
             branch_url;
-        
+
 
         $('#issue-changesets').prepend($issueBranches);
         $issueBranches.append('<h3 id="branches_header">' + headerText + '</h3>');
@@ -71,7 +70,7 @@ $(function(){
                     );
                 }
                 $issueBranches.append(
-                        '<div>' +                        
+                        '<div>' +
                             'Branch: <a target="_blank" class="elder_branch_name" href="' + branch_url + '">' + elderBranch[1] + '</a>' +
                         '</div>'
                 );
@@ -126,49 +125,51 @@ $(function(){
         }
     };
 
+    var applyCommitsData = function(commitsData){
+        $.each(commitsData, function(commitId, data){
+            $revUrl = $('a[href*="/revisions/"]').filter(function(){
+                return $(this).data('commitId') == commitId;
+            });
+            $revUrl.before('<span class="audit_info ' + data.status + '"></span>');
+
+            // getting commits branches
+            if (showCommitBranches || showTicketsBranches){
+                requests_array.push(getAndFillCommitBranches(
+                    $info.data('projectSid'),
+                    commitId,
+                    $revUrl,
+                    showCommitBranches
+                ));
+            }
+
+            if($info.data('changeUrl') && data['url']){
+                $revUrl
+                    .attr('href', data['url'])
+                    .attr('target', '_blank');
+            }
+        });
+
+        $.when.apply({}, requests_array).then(function(){
+            if ( showTicketsBranches){
+                getAndShowFinalBranch($info.data('instanceBranchMapping'), $info.data('isGitflowProject'));
+            }
+        });
+    };
 
     var $info = $('#phabricator_audit_info'),
-        el = $info.data('statuses'),
         showCommitBranches = $info.data('showCommitsBranches'),
         showTicketsBranches = $info.data('showTicketsBranches'),
-        commitId, $revUrl,
-        requests_array;
+        $revUrl,
+        commitIds = [],
+        requests_array = [];
 
-    $.each(el, function(key, value){
-        // filling commits revisions - no AJAX part
-        commitId = key.replace(/r([A-Z0-9]+)([a-z0-9]{40})/,'$2');
-        $revUrl = $('a[href*=\"/revisions/' + commitId + '\"]');
-
-        $revUrl.before('<span class=\"audit_info ' + value['status'] + '\"></span>');
+    $('a[href*="/revisions/"]').each(function(){
+        var $a = $(this);
+        $a.data('commitId', $a.attr('href').replace(/.*\/revisions\/([a-f0-9]{40})/, '$1'));
+        commitIds.push($a.data('commitId'));
     });
 
-    requests_array = new Array;
-
-    $.each(el, function(key, value){
-        // getting commits branches
-        commitId = key.replace(/r([A-Z0-9]+)([a-z0-9]{40})/,'$2');
-        $revUrl = $('a[href*=\"/revisions/' + commitId + '\"]');
-
-        if (showCommitBranches || showTicketsBranches){
-            requests_array.push(getAndFillCommitBranches(
-                $info.data('project-sid'),
-                commitId,
-                $revUrl,
-                showCommitBranches
-            ));
-        }
-
-        if($info.data('change-url') && value['url']){
-            $revUrl
-                .attr('href', value['url'])
-                .attr('target', '_blank');
-        }
-
-    });
-
-    $.when.apply({}, requests_array).then(function(){
-        if ( showTicketsBranches){
-            getAndShowFinalBranch($info.data('instanceBranchMapping'), $info.data('isGitflowProject'));
-        }
-    });
+    if (commitIds.length) {
+        $.get('/phabmine/' + $info.data('projectSid') + '/commits/status/', {commits: commitIds}, applyCommitsData, 'json');
+    }
 });

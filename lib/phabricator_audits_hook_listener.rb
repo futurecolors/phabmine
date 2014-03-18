@@ -21,7 +21,7 @@ def get_changesets_statuses changesets, project_sid
 #          '810cd809' => {'status'=> 'accepted', 'url'=> 'example.com'},
 #    }
   end
-  return data.to_json.html_safe
+  return data
 end
 
 def get_phabricator_project_slug(redmine_phabricator_project_mapping, redmine_slug)
@@ -82,12 +82,10 @@ class PollsHookListener < Redmine::Hook::ViewListener
     user_roles = User.current.roles_for_project(context[:project]).map{|e| e.id}
     show_phabricator_url = (user_roles & roles_to_hide_phabricator_url).empty?
     project_sid = get_phabricator_project_slug(redmine_phabricator_project_mapping, issue.project.identifier)
-    commits_data = get_changesets_statuses(issue.changesets.map{|c| c.revision}, project_sid)
     base_repository_url = get_base_repositiry_url project_sid, get_arcrc_path
     context[:controller].send(:render_to_string, {
       :partial => "/phabmine/statuses",
       :locals => {
-        :statuses => commits_data,
         :show_phabricator_url => show_phabricator_url,
         :project_sid => project_sid,
         :base_repository_url => base_repository_url,
