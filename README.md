@@ -8,10 +8,10 @@ Phabmine is [Redmine](http://www.redmine.org) plugin that integrates wth [Phabri
 2. Change commit URL from redmineweb (which is default) to phabricator.
 
 ## Installaion
-1. `cd redmine/apps/dir/`
-2. `git clone git@github.com:Melevir/phabmine.git`
-3. [Install Phabricator Arcanist](http://www.phabricator.com/docs/phabricator/article/Arcanist_User_Guide.html#installing-arcanist), run `arc install-certificate` and follow instructions. You must have `~/.arcrc` after this step.
-4. Create a link to `.arcrc` file at `/redmine/apps/dir/phabricator/` with `ln -s /home/%username%/.arcrc` in phabricator directory.
+1. Change to Redmine plugins directory (varies by version).
+2. `git clone git@github.com:futurecolors/phabmine.git && cd phabmine && git submodule init && git submodule update`
+3. [Install Phabricator Arcanist](http://www.phabricator.com/docs/phabricator/article/Arcanist_User_Guide.html#installing-arcanist), run `arc install-certificate <phabricator url>` and follow instructions. You must have `~/.arcrc` after this step.
+4. Create a link to `.arcrc` file from `phabmine` directory.
 5. Reload redmine.
 
 ##Configuration
