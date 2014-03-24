@@ -31,27 +31,29 @@ $(function(){
                 $branchesInfo.append('<span class="branch">' + value + '</span>')
             })
         }
+        $revUrl.data('branches', branches);
     };
 
     var getAndShowFinalBranch = function(instanceBranchMapping, isGitflowProject){
         var headerText = isGitflowProject? 'Summary' : 'Affected branches',
             $info = $('#phabricator_audit_info'),
             $issueBranches = $('<div id="issue_branches"></div>'),
-            unique = $.unique($info.data('branches')),
             projectSid = $info.data('projectSid'),
+            lastCommitBranches,
             elderBranch,
             instanceName,
             branch_url;
 
 
+        lastCommitBranches = $('a.js-revurl').last().data('branches');
+
         $('#issue-changesets').prepend($issueBranches);
         $issueBranches.append('<h3 id="branches_header">' + headerText + '</h3>');
 
         if (isGitflowProject){
-            elderBranch = getGitflowElderBranch(unique);
-            console.log(elderBranch);
+            elderBranch = getGitflowElderBranch(lastCommitBranches);
             if (elderBranch[0] == undefined){
-                showIssueBranches($issueBranches, unique);
+                showIssueBranches($issueBranches, lastCommitBranches);
             }
             else{
                 branch_url = $info.data('baseRepositoryUrl') + elderBranch[1] + '/';
@@ -77,7 +79,7 @@ $(function(){
             }
         }
         else{
-            showIssueBranches($issueBranches, unique);
+            showIssueBranches($issueBranches, lastCommitBranches);
         }
     };
 
@@ -144,6 +146,7 @@ $(function(){
 
             if($info.data('changeUrl') && data['url']){
                 $revUrl
+                    .addClass('js-revurl')
                     .attr('href', data['url'])
                     .attr('target', '_blank');
             }
