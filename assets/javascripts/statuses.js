@@ -4,9 +4,10 @@ $(function(){
             oldData, newBranches;
 
         return $.ajax({
-            url: '/phabmine/'+ projectSid + '/commit/' + commitId + '/branches/'
+            url: '/phabmine/'+ projectSid + '/commit/' + commitId + '/branches/',
+            dataType: 'json'
         }).then(function(data){
-            data = $.parseJSON(data);
+            $revUrl.data('branches', data);
             if(toFill){
                 fillBranches($revUrl, data);
             }
@@ -31,7 +32,6 @@ $(function(){
                 $branchesInfo.append('<span class="branch">' + value + '</span>')
             })
         }
-        $revUrl.data('branches', branches);
     };
 
     var getAndShowFinalBranch = function(instanceBranchMapping, isGitflowProject){
@@ -132,7 +132,7 @@ $(function(){
             $revUrl = $('a[href*="/revisions/"]').filter(function(){
                 return $(this).data('commitId') == commitId;
             });
-            $revUrl.before('<span class="audit_info ' + data.status + '"></span>');
+            $revUrl.addClass('js-revurl').before('<span class="audit_info ' + data.status + '"></span>');
 
             // getting commits branches
             if (showCommitBranches || showTicketsBranches){
@@ -146,7 +146,6 @@ $(function(){
 
             if($info.data('changeUrl') && data['url']){
                 $revUrl
-                    .addClass('js-revurl')
                     .attr('href', data['url'])
                     .attr('target', '_blank');
             }
